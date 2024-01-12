@@ -111,6 +111,12 @@ const post = async (req, res) => {
     ({ valid_qr_code }) => valid_qr_code == qr_code
   );
 
+  if (!user.qr_code) {
+    res.json({
+      message: "Нямаш налични QR кодове за решения",
+    });
+  }
+
   if (isValid) {
     const qrCodesLeft = user.qr_codes.filter(
       ({ valid_qr_code }) => valid_qr_code != qr_code
