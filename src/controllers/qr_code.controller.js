@@ -72,24 +72,26 @@ const get = async (req, res) => {
 
   const { mixed_qr_code, valid_qr_code } = solutions(qrCode, 20);
 
-  if (!(await Users.findOne({ token: req.token }))) {
+  if (!(await Users.findOne({ auth_token: req.auth_token }))) {
     const k = await Users.create({
-      token: req.token,
+      auth_token: req.auth_token,
       qr_codes: await QrCodes.create({
         mixed_qr_code: mixed_qr_code,
         valid_qr_code: valid_qr_code,
       }),
     });
   } else {
-    Users.findOneAndUpdate({ token: req.token }).then(async (user) => {
-      user.qr_codes.push(
-        await QrCodes.create({
-          mixed_qr_code: mixed_qr_code,
-          valid_qr_code: valid_qr_code,
-        })
-      );
-      user.save();
-    });
+    Users.findOneAndUpdate({ auth_token: req.auth_token }).then(
+      async (user) => {
+        user.qr_codes.push(
+          await QrCodes.create({
+            mixed_qr_code: mixed_qr_code,
+            valid_qr_code: valid_qr_code,
+          })
+        );
+        user.save();
+      }
+    );
   }
 
   res.json({
@@ -98,7 +100,7 @@ const get = async (req, res) => {
 };
 
 const post = async (req, res) => {
-  const user = (await Users.find({ token: req.token }))[0];
+  const user = (await Users.find({ auth_token: req.auth_token }))[0];
   const { qr_code } = req.body;
 
   if (!user) {
@@ -124,7 +126,7 @@ const post = async (req, res) => {
       ({ valid_qr_code }) => valid_qr_code != qr_code
     );
     await Users.findOneAndUpdate(
-      { token: req.token },
+      { auth_token: req.auth_token },
       { solved_qr_codes: user.solved_qr_codes + 1, qr_codes: qrCodesLeft }
     );
 
@@ -134,7 +136,10 @@ const post = async (req, res) => {
       }/5 решени билета!`,
     });
   } else {
-    await Users.findOneAndUpdate({ token: req.token }, { solved_qr_codes: 0 });
+    await Users.findOneAndUpdate(
+      { auth_token: req.auth_token },
+      { solved_qr_codes: 0 }
+    );
 
     res.json({
       message:

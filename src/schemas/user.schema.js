@@ -3,7 +3,7 @@ const { QrCodesSchema } = require("./qr_code.schema");
 const { RequestSchema } = require("./request.schema");
 const userSchema = new mongoose.Schema({
   qr_codes: [QrCodesSchema],
-  token: {
+  auth_token: {
     type: String,
     required: true,
   },
