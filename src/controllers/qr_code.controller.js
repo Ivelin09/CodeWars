@@ -107,7 +107,7 @@ const post = async (req, res) => {
     });
   }
 
-  if (!user.qr_code || user.qr_code.length != 0) {
+  if (!user.qr_code || user.qr_code.length == 0) {
     res.json({
       message: "Нямаш налични QR кодове за решения",
     });
