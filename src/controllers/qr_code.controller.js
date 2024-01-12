@@ -126,6 +126,7 @@ const post = async (req, res) => {
       attempts: 0,
     }),
   });
+  console.log("request", request);
   if (
     user.requests.filter(
       (request) => request.type[0].requestName == REQUEST_TYPES.validateQRCode
@@ -134,6 +135,7 @@ const post = async (req, res) => {
     const requests = user.requests.filter(
       (request) => request.requestType != REQUEST_TYPES.validateQRCode
     );
+
     await Users.findOneAndUpdate(
       {
         token: req.token,
@@ -166,11 +168,14 @@ const post = async (req, res) => {
         user.solved_qr_codes + 1
       }/5 решени билета!`,
     });
-  } else
+  } else {
+    await Users.findOneAndUpdate({ token: req.token }, { solved_qr_codes: 0 });
+
     res.json({
       message:
         "Това е невалиден билет. Иван и приятелите му са изгонени от автобуса и чакат да им оправиш билтите до следващият автобус. Решените ти билети са занулени.",
     });
+  }
 };
 
 module.exports = { get, post };
