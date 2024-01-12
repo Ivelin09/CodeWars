@@ -111,6 +111,8 @@ const post = async (req, res) => {
     res.json({
       message: "Нямаш налични QR кодове за решения",
     });
+
+    return;
   }
 
   const isValid = user.qr_codes.some(
