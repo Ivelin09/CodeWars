@@ -7,7 +7,7 @@ const Request = new Schema({
     type: Date,
   },
   type: {
-    type: [validateQrCodeSchema],
+    type: validateQrCodeSchema,
   },
 });
 

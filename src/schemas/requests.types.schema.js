@@ -19,9 +19,10 @@ const validateQrCodeSchema = new Schema({
 });
 
 const getTimeout = (document) => {
-  if (document.attempts < 3) return;
+  if (!document) return 0;
+  if (document.attempts < 5) return { timeout: new Date().getDate() };
 
-  return { timeout: new Date().getDate() + 1000 * 15 };
+  return new Date().getDate() + 1000 * 30;
 };
 
 module.exports = {

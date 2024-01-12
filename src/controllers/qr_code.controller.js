@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 const Users = require("../schemas/user.schema");
 const { QrCodes } = require("../schemas/qr_code.schema");
-const { Request, getTimeout } = require("../schemas/request.schema");
-const { validateQRCodeModel } = require("../schemas/requests.types.schema");
+const { Request } = require("../schemas/request.schema");
+const {
+  validateQRCodeModel,
+  getTimeout,
+} = require("../schemas/requests.types.schema");
+
 const solutions = (mixedQRCode, id) => {
   const getLetterOrder = (letter) => {
     if (letter >= "a" && letter <= "z")
@@ -66,7 +70,7 @@ const get = async (req, res) => {
     else qrCode += String.fromCharCode(65 + Math.floor(Math.random() * 5));
   }
 
-  const { mixed_qr_code, valid_qr_code } = solutions(qrCode, QRCodeInitLength);
+  const { mixed_qr_code, valid_qr_code } = solutions(qrCode, 20);
 
   if (!(await Users.findOne({ token: req.token }))) {
     const k = await Users.create({
@@ -93,10 +97,6 @@ const get = async (req, res) => {
   });
 };
 
-const REQUEST_TYPES = {
-  validateQRCode: "validateQRCode",
-};
-
 const post = async (req, res) => {
   const user = (await Users.find({ token: req.token }))[0];
   const { qr_code } = req.body;
@@ -118,41 +118,6 @@ const post = async (req, res) => {
   const isValid = user.qr_codes.some(
     ({ valid_qr_code }) => valid_qr_code == qr_code
   );
-
-  const request = await Request.create({
-    request_date_sent: new Date().getTime(),
-    type: await validateQRCodeModel.create({
-      is_last_solved: isValid,
-      attempts: 0,
-    }),
-  });
-  console.log("request", request);
-  if (
-    user.requests.filter(
-      (request) => request.type[0].requestName == REQUEST_TYPES.validateQRCode
-    )
-  ) {
-    const requests = user.requests.filter(
-      (request) => request.requestType != REQUEST_TYPES.validateQRCode
-    );
-
-    await Users.findOneAndUpdate(
-      {
-        token: req.token,
-      },
-      {
-        requests: [...requests, request],
-      }
-    );
-  } else
-    await Users.findOneAndUpdate(
-      { token: req.token },
-      {
-        requests: [...user.requests, request],
-      }
-    );
-
-  console.log("user", JSON.stringify(user, null, 2));
 
   if (isValid) {
     const qrCodesLeft = user.qr_codes.filter(
