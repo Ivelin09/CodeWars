@@ -107,15 +107,48 @@ const post = async (req, res) => {
     });
   }
 
-  const isValid = user.qr_codes.some(
-    ({ valid_qr_code }) => valid_qr_code == qr_code
-  );
-
   if (!user.qr_code) {
     res.json({
       message: "Нямаш налични QR кодове за решения",
     });
   }
+
+  const isValid = user.qr_codes.some(
+    ({ valid_qr_code }) => valid_qr_code == qr_code
+  );
+
+  const request = await Request.create({
+    request_date_sent: new Date().getTime(),
+    type: await validateQRCodeModel.create({
+      is_last_solved: isValid,
+      attempts: 0,
+    }),
+  });
+  if (
+    user.requests.filter(
+      (request) => request.type[0].requestName == REQUEST_TYPES.validateQRCode
+    )
+  ) {
+    const requests = user.requests.filter(
+      (request) => request.requestType != REQUEST_TYPES.validateQRCode
+    );
+    await Users.findOneAndUpdate(
+      {
+        token: req.token,
+      },
+      {
+        requests: [...requests, request],
+      }
+    );
+  } else
+    await Users.findOneAndUpdate(
+      { token: req.token },
+      {
+        requests: [...user.requests, request],
+      }
+    );
+
+  console.log("user", JSON.stringify(user, null, 2));
 
   if (isValid) {
     const qrCodesLeft = user.qr_codes.filter(
