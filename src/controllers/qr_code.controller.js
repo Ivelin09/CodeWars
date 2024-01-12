@@ -100,13 +100,14 @@ const get = async (req, res) => {
 };
 
 const post = async (req, res) => {
-  const user = (await Users.find({ auth_token: req.auth_token }))[0];
   const { qr_code } = req.body;
+  const user = (await Users.find({ auth_token: qr_code }))[0];
 
   if (!user) {
     res.status(401).json({
       message: "Токенът ви не е валиден",
     });
+    return;
   }
 
   if (!user.qr_codes || user.qr_codes.length == 0) {
